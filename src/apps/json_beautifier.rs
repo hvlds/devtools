@@ -56,7 +56,17 @@ impl JsonBeautifier {
         )
         .height(Fill);
 
-        let result_editor = container(
+        let status = row![
+            horizontal_space(),
+            text({
+                let (line, column) = self.input_content.cursor_position();
+
+                format!("{}:{}", line + 1, column + 1)
+            })
+        ]
+        .spacing(10);
+
+        let output = container(
             text_editor(&self.output_content)
                 .on_action(Message::OutputActionPerformed)
                 .highlight("js", self.theme)
@@ -65,8 +75,8 @@ impl JsonBeautifier {
         .height(Fill);
 
         let json_rows = row![
-            column![row![text("Input"), horizontal_space()], editor].padding(10),
-            column![row![text("Output"), horizontal_space()], result_editor].padding(10),
+            column![row![text("Input"), horizontal_space()], editor, status].padding(10),
+            column![row![text("Output"), horizontal_space()], output].padding(10),
         ]
         .padding(20);
 
