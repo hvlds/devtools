@@ -15,7 +15,7 @@ mod modal;
 mod utils;
 
 pub fn main() -> iced::Result {
-    iced::application("Devtools", DevTools::update, DevTools::view)
+    iced::application("DevTools", DevTools::update, DevTools::view)
         .subscription(DevTools::subscription)
         .run()
 }
@@ -58,6 +58,14 @@ impl DevTools {
                     Task::none()
                 }
             }
+            Message::JsonBeautifier(message) => {
+                if let Screen::JsonBeautifier(json_beautifier) = &mut self.screen {
+                    json_beautifier.update(message);
+                    Task::none()
+                } else {
+                    Task::none()
+                }
+            }
             Message::AppLauncher(message) => {
                 let selected_application = self.launcher.update(message);
                 match selected_application {
@@ -72,12 +80,14 @@ impl DevTools {
                                 Application::UUIDGenerator => {
                                     Screen::UUIDGenerator(UUIDGenerator::new())
                                 }
-                            }
+                            };
+                            widget::focus_next()
+                        } else {
+                            Task::none()
                         }
                     }
-                    None => (),
+                    None => Task::none(),
                 }
-                Task::none()
             }
             Message::HideModal => {
                 self.is_modal_open = false;
