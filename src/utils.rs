@@ -1,7 +1,6 @@
 use iced::Event;
 
-use crate::uuid_generator;
-
+use crate::{app_launcher, uuid_generator};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum Version {
@@ -53,7 +52,6 @@ impl std::fmt::Display for Application {
 pub enum Message {
     HideModal,
     UUIDGenerator(uuid_generator::Message),
-    ApplicationSelected(Application),
-    ApplicationHovered(Application),
+    AppLauncher(app_launcher::Message),
     Event(Event),
 }

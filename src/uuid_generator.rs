@@ -54,8 +54,8 @@ impl UUIDGenerator {
         column![header, content].into()
     }
 
-    pub fn update(&mut self, event: Message) {
-        match event {
+    pub fn update(&mut self, message: Message) {
+        match message {
             Message::Generated => match self.selected_version {
                 Some(version) => match version {
                     Version::V4 => self.value = Uuid::new_v4(),

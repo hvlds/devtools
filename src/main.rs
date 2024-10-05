@@ -5,10 +5,12 @@ use iced::{
     keyboard::{self, key},
     Element, Event, Subscription, Task,
 };
+use modal::modal;
 use utils::Message;
 use uuid_generator::UUIDGenerator;
 
 mod app_launcher;
+mod modal;
 mod utils;
 mod uuid_generator;
 
@@ -21,6 +23,7 @@ pub fn main() -> iced::Result {
 pub struct DevTools {
     screen: Screen,
     launcher: AppLauncher,
+    is_modal_open: bool,
 }
 
 enum Screen {
@@ -32,6 +35,7 @@ impl Default for DevTools {
         Self {
             launcher: AppLauncher::new(),
             screen: Screen::UUIDGenerator(UUIDGenerator::new()),
+            is_modal_open: false,
         }
     }
 }
@@ -51,9 +55,12 @@ impl DevTools {
                     Task::none()
                 }
             }
-
+            Message::AppLauncher(message) => {
+                self.launcher.update(message);
+                Task::none()
+            }
             Message::HideModal => {
-                self.launcher.hide_modal();
+                self.is_modal_open = false;
                 Task::none()
             }
             Message::Event(event) => match event {
@@ -61,7 +68,7 @@ impl DevTools {
                     key: keyboard::Key::Named(key::Named::Space),
                     ..
                 }) => {
-                    self.launcher.is_modal_open ^= true;
+                    self.is_modal_open ^= true;
                     widget::focus_next()
                 }
                 _ => Task::none(),
@@ -74,8 +81,13 @@ impl DevTools {
         let content = match &self.screen {
             Screen::UUIDGenerator(uuid_generator) => uuid_generator.view(),
         };
-        if self.launcher.is_modal_open {
-            self.launcher.modal(content.map(Message::UUIDGenerator))
+        let launcher_content = self.launcher.view().map(Message::AppLauncher);
+        if self.is_modal_open {
+            modal(
+                content.map(Message::UUIDGenerator),
+                launcher_content,
+                Message::HideModal,
+            )
         } else {
             content.map(Message::UUIDGenerator)
         }
