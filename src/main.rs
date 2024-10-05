@@ -56,7 +56,10 @@ impl DevTools {
                 }
             }
             Message::AppLauncher(message) => {
-                self.launcher.update(message);
+                let selected_application = self.launcher.update(message);
+                if selected_application.is_some() {
+                    self.is_modal_open = false;
+                }
                 Task::none()
             }
             Message::HideModal => {
@@ -65,7 +68,7 @@ impl DevTools {
             }
             Message::Event(event) => match event {
                 Event::Keyboard(keyboard::Event::KeyPressed {
-                    key: keyboard::Key::Named(key::Named::Space),
+                    key: keyboard::Key::Named(key::Named::Escape),
                     ..
                 }) => {
                     self.is_modal_open ^= true;

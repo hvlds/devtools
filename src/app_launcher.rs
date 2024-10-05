@@ -1,5 +1,5 @@
 use iced::{
-    widget::{combo_box, container, ComboBox},
+    widget::{combo_box, container},
     Element,
 };
 
@@ -46,10 +46,16 @@ impl AppLauncher {
             .into()
     }
 
-    pub fn update(&mut self, message: Message) {
+    pub fn update(&mut self, message: Message) -> Option<Application> {
         match message {
-            Message::Hovered(application) => self.selected_application = Some(application),
-            Message::Selected(application) => self.selected_application = Some(application),
+            Message::Hovered(application) => {
+                self.selected_application = Some(application);
+                None
+            }
+            Message::Selected(application) => {
+                self.selected_application = Some(application);
+                Some(application)
+            }
         }
     }
 }
