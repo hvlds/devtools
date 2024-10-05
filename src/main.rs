@@ -103,7 +103,6 @@ impl DevTools {
                 }
                 _ => Task::none(),
             },
-            _ => Task::none(),
         }
     }
 

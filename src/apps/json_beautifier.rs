@@ -13,6 +13,7 @@ use iced::{
 pub struct JsonBeautifier {
     input_content: text_editor::Content,
     output_content: text_editor::Content,
+    error_text: Option<String>,
     theme: highlighter::Theme,
 }
 
@@ -28,6 +29,7 @@ impl JsonBeautifier {
         Self {
             input_content: text_editor::Content::new(),
             output_content: text_editor::Content::new(),
+            error_text: None,
             theme: highlighter::Theme::InspiredGitHub,
         }
     }
@@ -68,7 +70,16 @@ impl JsonBeautifier {
         ]
         .padding(20);
 
-        column![header, controls, json_rows].into()
+        let mut all_content = column![header, controls, json_rows];
+        match &self.error_text {
+            Some(v) => {
+                all_content =
+                    all_content.push(row![text(v.to_owned()), horizontal_space()].padding(20));
+            }
+            None => (),
+        }
+
+        all_content.into()
     }
 
     pub fn update(&mut self, message: Message) {
@@ -88,11 +99,12 @@ impl JsonBeautifier {
                 match serde_json::from_str::<HashMap<String, serde_json::Value>>(text_content) {
                     Ok(serialized_json) => match serde_json::to_string_pretty(&serialized_json) {
                         Ok(formatted_json) => {
+                            self.error_text = None;
                             self.output_content = text_editor::Content::with_text(&formatted_json)
                         }
-                        Err(_) => (),
+                        Err(e) => self.error_text = Some(e.to_string()),
                     },
-                    Err(_) => (),
+                    Err(e) => self.error_text = Some(e.to_string()),
                 }
             }
         }
