@@ -31,7 +31,7 @@ impl UUIDGenerator {
         }
     }
 
-    pub fn view<'a>(&self) -> Element<'a, Message> {
+    pub fn view(&self) -> Element<Message> {
         let header = container(
             row![horizontal_space(), "UUID Generator", horizontal_space(),]
                 .padding(10)

@@ -1,6 +1,7 @@
 use iced::Event;
 
-use crate::{app_launcher, uuid_generator};
+use crate::app_launcher;
+use crate::apps::{json_beautifier, uuid_generator};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum Version {
@@ -30,10 +31,11 @@ impl std::fmt::Display for Version {
 pub enum Application {
     #[default]
     UUIDGenerator,
+    JsonBeautifier,
 }
 
 impl Application {
-    pub const ALL: [Application; 1] = [Application::UUIDGenerator];
+    pub const ALL: [Application; 2] = [Application::UUIDGenerator, Application::JsonBeautifier];
 }
 
 impl std::fmt::Display for Application {
@@ -43,6 +45,7 @@ impl std::fmt::Display for Application {
             "{}",
             match self {
                 Application::UUIDGenerator => "UUID Generator",
+                Application::JsonBeautifier => "JSON Beautifier",
             }
         )
     }
@@ -53,5 +56,6 @@ pub enum Message {
     HideModal,
     UUIDGenerator(uuid_generator::Message),
     AppLauncher(app_launcher::Message),
+    JsonBeautifier(json_beautifier::Message),
     Event(Event),
 }

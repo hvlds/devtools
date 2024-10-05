@@ -1,4 +1,5 @@
 use app_launcher::AppLauncher;
+use apps::{JsonBeautifier, UUIDGenerator};
 use iced::event::{self};
 use iced::widget::{self};
 use iced::{
@@ -6,13 +7,12 @@ use iced::{
     Element, Event, Subscription, Task,
 };
 use modal::modal;
-use utils::Message;
-use uuid_generator::UUIDGenerator;
+use utils::{Application, Message};
 
 mod app_launcher;
+mod apps;
 mod modal;
 mod utils;
-mod uuid_generator;
 
 pub fn main() -> iced::Result {
     iced::application("Devtools", DevTools::update, DevTools::view)
@@ -24,10 +24,12 @@ pub struct DevTools {
     screen: Screen,
     launcher: AppLauncher,
     is_modal_open: bool,
+    current_application: Application,
 }
 
 enum Screen {
     UUIDGenerator(UUIDGenerator),
+    JsonBeautifier(JsonBeautifier),
 }
 
 impl Default for DevTools {
@@ -35,6 +37,7 @@ impl Default for DevTools {
         Self {
             launcher: AppLauncher::new(),
             screen: Screen::UUIDGenerator(UUIDGenerator::new()),
+            current_application: Application::UUIDGenerator,
             is_modal_open: false,
         }
     }
@@ -57,8 +60,22 @@ impl DevTools {
             }
             Message::AppLauncher(message) => {
                 let selected_application = self.launcher.update(message);
-                if selected_application.is_some() {
-                    self.is_modal_open = false;
+                match selected_application {
+                    Some(application) => {
+                        self.is_modal_open = false;
+                        if application != self.current_application {
+                            self.current_application = application;
+                            self.screen = match application {
+                                Application::JsonBeautifier => {
+                                    Screen::JsonBeautifier(JsonBeautifier::new())
+                                }
+                                Application::UUIDGenerator => {
+                                    Screen::UUIDGenerator(UUIDGenerator::new())
+                                }
+                            }
+                        }
+                    }
+                    None => (),
                 }
                 Task::none()
             }
@@ -82,17 +99,18 @@ impl DevTools {
 
     fn view(&self) -> Element<Message> {
         let content = match &self.screen {
-            Screen::UUIDGenerator(uuid_generator) => uuid_generator.view(),
+            Screen::UUIDGenerator(uuid_generator) => {
+                uuid_generator.view().map(Message::UUIDGenerator)
+            }
+            Screen::JsonBeautifier(json_beautifier) => {
+                json_beautifier.view().map(Message::JsonBeautifier)
+            }
         };
         let launcher_content = self.launcher.view().map(Message::AppLauncher);
         if self.is_modal_open {
-            modal(
-                content.map(Message::UUIDGenerator),
-                launcher_content,
-                Message::HideModal,
-            )
+            modal(content, launcher_content, Message::HideModal)
         } else {
-            content.map(Message::UUIDGenerator)
+            content
         }
     }
 }
