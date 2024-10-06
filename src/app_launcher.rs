@@ -41,7 +41,8 @@ impl AppLauncher {
     pub fn view(&self) -> Element<Message> {
         let input_app = text_input("Search an app...", &self.search_text)
             .on_input(Message::Search)
-            .on_submit(Message::SearchSubmitted);
+            .on_submit(Message::SearchSubmitted)
+            .id("app-launcher-text-input");
 
         let results = keyed_column(
             self.search_matches

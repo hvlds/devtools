@@ -23,7 +23,7 @@ pub fn modal<'a, 'b: 'a>(
                         container::Style {
                             background: Some(
                                 Color {
-                                    a: 0.4,
+                                    a: 0.3,
                                     ..Color::BLACK
                                 }
                                 .into(),

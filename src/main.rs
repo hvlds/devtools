@@ -82,7 +82,7 @@ impl DevTools {
                                     Screen::UUIDGenerator(UUIDGenerator::new())
                                 }
                             };
-                            widget::focus_next()
+                            widget::text_input::focus("app-launcher-text-input")
                         } else {
                             Task::none()
                         }
@@ -102,7 +102,7 @@ impl DevTools {
                 }) => {
                     self.is_modal_open ^= true;
                     self.launcher.reset();
-                    widget::focus_next()
+                    widget::text_input::focus("app-launcher-text-input")
                 }
                 _ => Task::none(),
             },
