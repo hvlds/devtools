@@ -1,6 +1,7 @@
 use app_launcher::AppLauncher;
 use apps::{JsonBeautifier, UUIDGenerator};
 use iced::event::{self};
+use iced::keyboard::Modifiers;
 use iced::widget::{self};
 use iced::{
     keyboard::{self, key},
@@ -113,6 +114,22 @@ impl DevTools {
                     self.is_modal_open ^= true;
                     self.launcher.reset();
                     widget::text_input::focus("app-launcher-text-input")
+                }
+                Event::Keyboard(keyboard::Event::KeyPressed {
+                    key: keyboard::Key::Named(key::Named::ArrowUp),
+                    modifiers: Modifiers::CTRL,
+                    ..
+                }) => {
+                    self.scale_factor.increment();
+                    Task::none()
+                }
+                Event::Keyboard(keyboard::Event::KeyPressed {
+                    key: keyboard::Key::Named(key::Named::ArrowDown),
+                    modifiers: Modifiers::CTRL,
+                    ..
+                }) => {
+                    self.scale_factor.decrement();
+                    Task::none()
                 }
                 _ => Task::none(),
             },

@@ -20,3 +20,17 @@ impl From<ScaleFactor> for f64 {
         value.0
     }
 }
+
+impl ScaleFactor {
+    pub fn increment(&mut self) {
+        if self.0 < 3.0 {
+            self.0 += 0.2;
+        }
+    }
+
+    pub fn decrement(&mut self) {
+        if self.0 >= 0.3 {
+            self.0 -= 0.2;
+        }
+    }
+}
