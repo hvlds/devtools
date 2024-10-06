@@ -1,12 +1,9 @@
 use app_launcher::AppLauncher;
 use apps::{JsonBeautifier, UUIDGenerator};
 use iced::event::{self};
-use iced::keyboard::Modifiers;
+use iced::keyboard::{self};
 use iced::widget::{self};
-use iced::{
-    keyboard::{self, key},
-    Element, Event, Subscription, Task,
-};
+use iced::{Element, Event, Subscription, Task};
 use modal::modal;
 
 use scale_factor::ScaleFactor;
@@ -108,26 +105,37 @@ impl DevTools {
             }
             Message::Event(event) => match event {
                 Event::Keyboard(keyboard::Event::KeyPressed {
-                    key: keyboard::Key::Named(key::Named::Escape),
+                    key: keyboard::Key::Named(keyboard::key::Named::Escape),
                     ..
                 }) => {
+                    if self.is_modal_open {
+                        self.is_modal_open = false;
+                        self.launcher.reset();
+                    }
+                    Task::none()
+                }
+                Event::Keyboard(keyboard::Event::KeyPressed {
+                    key: keyboard::Key::Named(keyboard::key::Named::Space),
+                    modifiers,
+                    ..
+                }) if modifiers.control() => {
                     self.is_modal_open ^= true;
                     self.launcher.reset();
                     widget::text_input::focus("app-launcher-text-input")
                 }
                 Event::Keyboard(keyboard::Event::KeyPressed {
-                    key: keyboard::Key::Named(key::Named::ArrowUp),
-                    modifiers: Modifiers::CTRL,
+                    key: keyboard::Key::Character(c),
+                    modifiers,
                     ..
-                }) => {
+                }) if c.as_str() == "+" && modifiers.control() => {
                     self.scale_factor.increment();
                     Task::none()
                 }
                 Event::Keyboard(keyboard::Event::KeyPressed {
-                    key: keyboard::Key::Named(key::Named::ArrowDown),
-                    modifiers: Modifiers::CTRL,
+                    key: keyboard::Key::Character(c),
+                    modifiers,
                     ..
-                }) => {
+                }) if c.as_str() == "-" && modifiers.control() => {
                     self.scale_factor.decrement();
                     Task::none()
                 }
