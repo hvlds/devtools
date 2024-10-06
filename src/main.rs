@@ -71,6 +71,7 @@ impl DevTools {
                 match selected_application {
                     Some(application) => {
                         self.is_modal_open = false;
+                        self.launcher.reset();
                         if application != self.current_application {
                             self.current_application = application;
                             self.screen = match application {
@@ -91,6 +92,7 @@ impl DevTools {
             }
             Message::HideModal => {
                 self.is_modal_open = false;
+                self.launcher.reset();
                 Task::none()
             }
             Message::Event(event) => match event {
@@ -99,6 +101,7 @@ impl DevTools {
                     ..
                 }) => {
                     self.is_modal_open ^= true;
+                    self.launcher.reset();
                     widget::focus_next()
                 }
                 _ => Task::none(),

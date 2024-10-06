@@ -52,14 +52,16 @@ impl AppLauncher {
 
         let content = column![input_app, results].padding(10);
 
-        container(content).center_x(500).style(container::rounded_box).into()
+        container(content)
+            .center_x(500)
+            .style(container::rounded_box)
+            .into()
     }
 
     pub fn update(&mut self, message: Message) -> Option<Application> {
         match message {
             Message::Search(application) => {
                 self.search_text = application;
-                let options = ["UUID Generator", "JSON Beautifier"];
                 let binding = self.search_text.to_owned();
 
                 self.search_matches = Pattern::parse(
@@ -67,7 +69,7 @@ impl AppLauncher {
                     CaseMatching::Ignore,
                     Normalization::Smart,
                 )
-                .match_list(options, &mut self.matcher)
+                .match_list(Application::ALL, &mut self.matcher)
                 .into_iter()
                 .map(|m| m.0.to_string())
                 .collect();
@@ -86,5 +88,10 @@ impl AppLauncher {
                 }
             }
         }
+    }
+
+    pub fn reset(&mut self) {
+        self.search_matches = vec![];
+        self.search_text = String::new();
     }
 }

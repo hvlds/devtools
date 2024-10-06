@@ -36,8 +36,11 @@ pub enum Application {
     JsonBeautifier,
 }
 
+const UUID_GENERATOR_NAME: &str = "UUID Generator";
+const JSON_BEAUTIFIER_NAME: &str = "JSON Beautifier";
+
 impl Application {
-    pub const ALL: [Application; 2] = [Application::UUIDGenerator, Application::JsonBeautifier];
+    pub const ALL: [&str; 2] = [UUID_GENERATOR_NAME, JSON_BEAUTIFIER_NAME];
 }
 
 impl std::fmt::Display for Application {
@@ -46,8 +49,8 @@ impl std::fmt::Display for Application {
             f,
             "{}",
             match self {
-                Application::UUIDGenerator => "UUID Generator",
-                Application::JsonBeautifier => "JSON Beautifier",
+                Application::UUIDGenerator => UUID_GENERATOR_NAME,
+                Application::JsonBeautifier => JSON_BEAUTIFIER_NAME,
             }
         )
     }
@@ -58,8 +61,8 @@ impl FromStr for Application {
 
     fn from_str(input: &str) -> Result<Application, Self::Err> {
         match input {
-            "UUID Generator" => Ok(Application::UUIDGenerator),
-            "JSON Beautifier" => Ok(Application::JsonBeautifier),
+            UUID_GENERATOR_NAME => Ok(Application::UUIDGenerator),
+            JSON_BEAUTIFIER_NAME => Ok(Application::JsonBeautifier),
             _ => Err(()),
         }
     }

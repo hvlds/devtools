@@ -1,6 +1,7 @@
 use iced::{
-    widget::{center, container, mouse_area, opaque, stack},
-    Color, Element,
+    padding::top,
+    widget::{container, mouse_area, opaque, stack},
+    Color, Element, Length,
 };
 
 use crate::utils::Message;
@@ -13,20 +14,26 @@ pub fn modal<'a, 'b: 'a>(
     stack![
         base.into(),
         opaque(
-            mouse_area(center(opaque(top_content)).style(|_theme| {
-                container::Style {
-                    background: Some(
-                        Color {
-                            a: 0.6,
-                            ..Color::BLACK
+            mouse_area(
+                container(opaque(top_content))
+                    .padding(top(30))
+                    .center_x(Length::Fill)
+                    .height(Length::Fill)
+                    .style(|_theme| {
+                        container::Style {
+                            background: Some(
+                                Color {
+                                    a: 0.4,
+                                    ..Color::BLACK
+                                }
+                                .into(),
+                            ),
+                            ..container::Style::default()
                         }
-                        .into(),
-                    ),
-                    ..container::Style::default()
-                }
-            }))
-            .on_press(on_press)
-        )
+                    })
+            )
+            .on_press(on_press.clone())
+        ),
     ]
     .into()
 }
