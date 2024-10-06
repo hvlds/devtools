@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use iced::{
-    widget::{column, container, keyed_column, text, text_input, Column, Text},
+    widget::{column, container, keyed_column, text, text_input},
     Element,
 };
 use nucleo_matcher::{
