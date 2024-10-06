@@ -33,7 +33,7 @@ impl UUIDGenerator {
 
     pub fn view(&self) -> Element<Message> {
         let header = container(
-            row![horizontal_space(), "UUID Generator", horizontal_space(),]
+            row![text("UUID Generator").size(30), horizontal_space(),]
                 .padding(10)
                 .align_y(Center),
         )

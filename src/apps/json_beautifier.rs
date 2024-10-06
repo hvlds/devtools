@@ -3,7 +3,8 @@ use std::collections::HashMap;
 use iced::{
     highlighter,
     widget::{
-        button, column, container, horizontal_space, row, text, text_editor, text_editor::Action,
+        column, container, horizontal_space, row, slider, text,
+        text_editor::{self, Action},
     },
     Alignment::Center,
     Element,
@@ -15,41 +16,43 @@ pub struct JsonBeautifier {
     output_content: text_editor::Content,
     error_text: Option<String>,
     theme: highlighter::Theme,
+    indentation: u16,
 }
 
 #[derive(Debug, Clone)]
 pub enum Message {
     InputActionPerformed(text_editor::Action),
     OutputActionPerformed(text_editor::Action),
-    Beautified,
+    IndentationChanged(u16),
 }
 
 impl JsonBeautifier {
     pub fn new() -> Self {
         Self {
-            input_content: text_editor::Content::new(),
-            output_content: text_editor::Content::new(),
+            input_content: text_editor::Content::with_text("{}"),
+            output_content: text_editor::Content::with_text("{}"),
             error_text: None,
             theme: highlighter::Theme::InspiredGitHub,
+            indentation: 4,
         }
     }
 
     pub fn view(&self) -> Element<Message> {
         let header = container(
-            row![horizontal_space(), "Json Beautifier", horizontal_space(),]
+            row![text("Json Beautifier").size(30), horizontal_space(),]
                 .padding(10)
                 .align_y(Center),
         )
         .style(container::rounded_box);
 
         let controls = row![
-            button("Beautify!").on_press(Message::Beautified),
+            slider(0..=8, self.indentation, Message::IndentationChanged),
             horizontal_space()
         ]
         .padding(20);
 
         let editor = container(
-            text_editor(&self.input_content)
+            iced::widget::text_editor(&self.input_content)
                 .on_action(Message::InputActionPerformed)
                 .highlight("js", self.theme)
                 .height(Fill),
@@ -67,7 +70,7 @@ impl JsonBeautifier {
         .spacing(10);
 
         let output = container(
-            text_editor(&self.output_content)
+            iced::widget::text_editor(&self.output_content)
                 .on_action(Message::OutputActionPerformed)
                 .highlight("js", self.theme)
                 .height(Fill),
@@ -95,7 +98,28 @@ impl JsonBeautifier {
     pub fn update(&mut self, message: Message) {
         match message {
             Message::InputActionPerformed(action) => {
+                let old_text = self.input_content.text().to_owned();
+
                 self.input_content.perform(action);
+
+                let new_text = self.input_content.text().to_owned();
+                if old_text != new_text {
+                    let text_content = new_text.as_str();
+                    let pretty_formatter = serde_json::ser::PrettyFormatter::with_indent(b"     ");
+                    // TODO: Try https://stackoverflow.com/a/49087292
+                    match serde_json::from_str::<HashMap<String, serde_json::Value>>(text_content) {
+                        Ok(serialized_json) => match serde_json::to_string_pretty(&serialized_json)
+                        {
+                            Ok(formatted_json) => {
+                                self.error_text = None;
+                                self.output_content =
+                                    text_editor::Content::with_text(&formatted_json)
+                            }
+                            Err(e) => self.error_text = Some(e.to_string()),
+                        },
+                        Err(e) => self.error_text = Some(e.to_string()),
+                    }
+                }
             }
             Message::OutputActionPerformed(action) => match action {
                 Action::SelectAll => {
@@ -103,20 +127,7 @@ impl JsonBeautifier {
                 }
                 _ => (),
             },
-            Message::Beautified => {
-                let binding = self.input_content.text().to_owned();
-                let text_content = binding.as_str();
-                match serde_json::from_str::<HashMap<String, serde_json::Value>>(text_content) {
-                    Ok(serialized_json) => match serde_json::to_string_pretty(&serialized_json) {
-                        Ok(formatted_json) => {
-                            self.error_text = None;
-                            self.output_content = text_editor::Content::with_text(&formatted_json)
-                        }
-                        Err(e) => self.error_text = Some(e.to_string()),
-                    },
-                    Err(e) => self.error_text = Some(e.to_string()),
-                }
-            }
+            Message::IndentationChanged(indentation) => self.indentation = indentation,
         }
     }
 }
