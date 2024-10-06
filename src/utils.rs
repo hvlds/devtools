@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use iced::Event;
 
 use crate::app_launcher;
@@ -48,6 +50,18 @@ impl std::fmt::Display for Application {
                 Application::JsonBeautifier => "JSON Beautifier",
             }
         )
+    }
+}
+
+impl FromStr for Application {
+    type Err = ();
+
+    fn from_str(input: &str) -> Result<Application, Self::Err> {
+        match input {
+            "UUID Generator" => Ok(Application::UUIDGenerator),
+            "JSON Beautifier" => Ok(Application::JsonBeautifier),
+            _ => Err(()),
+        }
     }
 }
 

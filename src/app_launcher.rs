@@ -1,6 +1,12 @@
+use std::str::FromStr;
+
 use iced::{
-    widget::{combo_box, container},
+    widget::{column, container, keyed_column, text, text_input, Column, Text},
     Element,
+};
+use nucleo_matcher::{
+    pattern::{CaseMatching, Normalization, Pattern},
+    Config, Matcher,
 };
 
 use crate::utils::Application;
@@ -12,49 +18,72 @@ impl Default for AppLauncher {
 }
 
 pub struct AppLauncher {
-    applications: combo_box::State<Application>,
-    selected_application: Option<Application>,
+    search_text: String,
+    search_matches: Vec<String>,
+    matcher: Matcher,
 }
 
 #[derive(Debug, Clone)]
 pub enum Message {
-    Selected(Application),
-    Hovered(Application),
+    Search(String),
+    SearchSubmitted,
 }
 
 impl AppLauncher {
     pub fn new() -> Self {
-        let state = combo_box::State::new(Application::ALL.to_vec());
         Self {
-            selected_application: None,
-            applications: state,
+            search_text: String::new(),
+            matcher: Matcher::new(Config::DEFAULT),
+            search_matches: vec![],
         }
     }
 
     pub fn view(&self) -> Element<Message> {
-        let combo_box = combo_box(
-            &self.applications,
-            "Type an Application...",
-            self.selected_application.as_ref(),
-            Message::Selected,
-        )
-        .on_option_hovered(Message::Hovered)
-        .width(250);
+        let input_app = text_input("Search an app...", &self.search_text)
+            .on_input(Message::Search)
+            .on_submit(Message::SearchSubmitted);
 
-        container(combo_box.padding(10))
-            .style(container::rounded_box)
-            .into()
+        let results = keyed_column(
+            self.search_matches
+                .iter()
+                .enumerate()
+                .map(|(i, search_match)| (i, text(search_match).into())),
+        );
+
+        let content = column![input_app, results].padding(10);
+
+        container(content).center_x(500).style(container::rounded_box).into()
     }
 
     pub fn update(&mut self, message: Message) -> Option<Application> {
         match message {
-            Message::Hovered(application) => {
-                self.selected_application = Some(application);
+            Message::Search(application) => {
+                self.search_text = application;
+                let options = ["UUID Generator", "JSON Beautifier"];
+                let binding = self.search_text.to_owned();
+
+                self.search_matches = Pattern::parse(
+                    &binding.as_str(),
+                    CaseMatching::Ignore,
+                    Normalization::Smart,
+                )
+                .match_list(options, &mut self.matcher)
+                .into_iter()
+                .map(|m| m.0.to_string())
+                .collect();
+
                 None
             }
-            Message::Selected(application) => {
-                self.selected_application = Some(application);
-                Some(application)
+            Message::SearchSubmitted => {
+                if self.search_matches.len() >= 1 {
+                    let best_match = self.search_matches.get(0).unwrap().as_str();
+                    match Application::from_str(best_match) {
+                        Ok(v) => Some(v),
+                        Err(_) => None,
+                    }
+                } else {
+                    None
+                }
             }
         }
     }
