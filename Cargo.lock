@@ -792,6 +792,7 @@ version = "0.1.0"
 dependencies = [
  "iced",
  "nucleo-matcher",
+ "serde",
  "serde_json",
  "tracing-subscriber",
  "uuid",

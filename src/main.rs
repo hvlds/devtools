@@ -7,16 +7,20 @@ use iced::{
     Element, Event, Subscription, Task,
 };
 use modal::modal;
+
+use scale_factor::ScaleFactor;
 use utils::{Application, Message};
 
 mod app_launcher;
 mod apps;
 mod modal;
+mod scale_factor;
 mod utils;
 
 pub fn main() -> iced::Result {
     iced::application("DevTools", DevTools::update, DevTools::view)
         .subscription(DevTools::subscription)
+        .scale_factor(DevTools::get_scale_factor)
         .run()
 }
 
@@ -25,6 +29,7 @@ pub struct DevTools {
     launcher: AppLauncher,
     is_modal_open: bool,
     current_application: Application,
+    scale_factor: ScaleFactor,
 }
 
 enum Screen {
@@ -39,11 +44,16 @@ impl Default for DevTools {
             screen: Screen::UUIDGenerator(UUIDGenerator::new()),
             current_application: Application::UUIDGenerator,
             is_modal_open: false,
+            scale_factor: ScaleFactor::default(),
         }
     }
 }
 
 impl DevTools {
+    fn get_scale_factor(&self) -> f64 {
+        self.scale_factor.into()
+    }
+
     fn subscription(&self) -> Subscription<Message> {
         event::listen().map(Message::Event)
     }
