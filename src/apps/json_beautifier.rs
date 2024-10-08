@@ -11,12 +11,15 @@ use iced::{
     Length::Fill,
 };
 
+use crate::utils::JSON_BEAUTIFIER_NAME;
+
 pub struct JsonBeautifier {
     input_content: text_editor::Content,
     output_content: text_editor::Content,
     error_text: Option<String>,
     theme: highlighter::Theme,
     indentation: u16,
+    application_name: String,
 }
 
 #[derive(Debug, Clone)]
@@ -34,16 +37,15 @@ impl JsonBeautifier {
             error_text: None,
             theme: highlighter::Theme::InspiredGitHub,
             indentation: 4,
+            application_name: JSON_BEAUTIFIER_NAME.to_string(),
         }
     }
 
-    pub fn view(&self) -> Element<Message> {
-        let header = container(
-            row![text("Json Beautifier").size(20), horizontal_space(),]
-                .padding(10)
-                .align_y(Center),
-        );
+    pub fn title(&self) -> String {
+        self.application_name.clone()
+    }
 
+    pub fn view(&self) -> Element<Message> {
         let controls = row![
             slider(0..=8, self.indentation, Message::IndentationChanged),
             horizontal_space()
@@ -82,7 +84,7 @@ impl JsonBeautifier {
         ]
         .padding(20);
 
-        let mut all_content = column![header, controls, json_rows];
+        let mut all_content = column![controls, json_rows];
         match &self.error_text {
             Some(v) => {
                 all_content =

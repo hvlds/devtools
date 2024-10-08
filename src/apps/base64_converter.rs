@@ -4,10 +4,14 @@ use iced::{
     Element,
 };
 
+use crate::utils::BASE64_CONVERTER_NAME;
+
 #[derive(Debug, Clone)]
 pub enum Message {}
 
-pub struct Base64Converter {}
+pub struct Base64Converter {
+    application_name: String,
+}
 
 impl Default for Base64Converter {
     fn default() -> Self {
@@ -17,16 +21,16 @@ impl Default for Base64Converter {
 
 impl Base64Converter {
     pub fn new() -> Self {
-        Self {}
+        Self {
+            application_name: BASE64_CONVERTER_NAME.to_string(),
+        }
+    }
+
+    pub fn title(&self) -> String {
+        self.application_name.clone()
     }
 
     pub fn view(&self) -> Element<Message> {
-        let header = container(
-            row![text("Base64 Converter").size(20), horizontal_space(),]
-                .padding(10)
-                .align_y(Center),
-        );
-
-        column![header, vertical_space()].into()
+        text("dummy").into()
     }
 }

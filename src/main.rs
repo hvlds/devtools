@@ -2,7 +2,8 @@ use app_launcher::AppLauncher;
 use apps::{Base64Converter, JsonBeautifier, UuidGenerator};
 use iced::event::{self};
 use iced::keyboard::{self};
-use iced::widget::{self};
+use iced::widget::{self, column, container, horizontal_space, row, text};
+use iced::Alignment::Center;
 use iced::{Element, Event, Subscription, Task, Theme};
 use modal::modal;
 
@@ -164,22 +165,35 @@ impl DevTools {
     }
 
     fn view(&self) -> Element<Message> {
-        let content = match &self.screen {
-            Screen::UuidGenerator(uuid_generator) => {
-                uuid_generator.view().map(Message::UuidGenerator)
-            }
-            Screen::JsonBeautifier(json_beautifier) => {
-                json_beautifier.view().map(Message::JsonBeautifier)
-            }
-            Screen::Base64Converter(base64_converter) => {
-                base64_converter.view().map(Message::Base64Converter)
-            }
+        let (content, title) = match &self.screen {
+            Screen::UuidGenerator(uuid_generator) => (
+                uuid_generator.view().map(Message::UuidGenerator),
+                uuid_generator.title(),
+            ),
+            Screen::JsonBeautifier(json_beautifier) => (
+                json_beautifier.view().map(Message::JsonBeautifier),
+                json_beautifier.title(),
+            ),
+            Screen::Base64Converter(base64_converter) => (
+                base64_converter.view().map(Message::Base64Converter),
+                base64_converter.title(),
+            ),
         };
+
+        let header: Element<Message> = container(
+            row![text(title).size(20), horizontal_space(),]
+                .padding(10)
+                .align_y(Center),
+        )
+        .into();
+
+        let content_with_header = column![header, content].into();
+
         let launcher_content = self.launcher.view().map(Message::AppLauncher);
         if self.is_modal_open {
-            modal(content, launcher_content, Message::HideModal)
+            modal(content_with_header, launcher_content, Message::HideModal)
         } else {
-            content
+            content_with_header
         }
     }
 }

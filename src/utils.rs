@@ -37,9 +37,9 @@ pub enum Application {
     Base64Converter,
 }
 
-const UUID_GENERATOR_NAME: &str = "UUID Generator";
-const JSON_BEAUTIFIER_NAME: &str = "JSON Beautifier";
-const BASE64_CONVERTER_NAME: &str = "Base64 Converter";
+pub const UUID_GENERATOR_NAME: &str = "UUID Generator";
+pub const JSON_BEAUTIFIER_NAME: &str = "JSON Beautifier";
+pub const BASE64_CONVERTER_NAME: &str = "Base64 Converter";
 
 impl Application {
     pub const ALL: [&str; 3] = [
