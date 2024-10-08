@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use iced::{
     border,
-    widget::{button, column, container, keyed_column, text_input},
+    widget::{column, container, keyed_column, mouse_area, text, text_input},
     Color, Element, Length,
 };
 use nucleo_matcher::{
@@ -22,6 +22,7 @@ pub struct Launcher {
     search_text: String,
     search_matches: Vec<String>,
     matcher: Matcher,
+    result_hovered: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -29,6 +30,8 @@ pub enum Message {
     Search(String),
     SearchSubmitted,
     SearchClicked(String),
+    ResultEntered(String),
+    ResultExited(String),
 }
 
 impl Launcher {
@@ -37,6 +40,7 @@ impl Launcher {
             search_text: String::new(),
             matcher: Matcher::new(Config::DEFAULT),
             search_matches: vec![],
+            result_hovered: None,
         }
     }
 
@@ -50,12 +54,41 @@ impl Launcher {
             |(i, search_match)| {
                 (
                     i,
-                    container(
-                        button(search_match.as_str())
-                            .on_press(Message::SearchClicked(search_match.to_string()))
-                            .width(Length::Fill),
+                    mouse_area(
+                        container(text(search_match.as_str()).width(Length::Fill))
+                            .padding(2)
+                            .style(|_theme| container::Style {
+                                background: if self
+                                    .result_hovered
+                                    .as_ref()
+                                    .is_some_and(|v| *v == search_match.to_string())
+                                {
+                                    Some(
+                                        Color {
+                                            a: 0.7,
+                                            r: 1.0,
+                                            g: 0.5,
+                                            b: 0.0,
+                                        }
+                                        .into(),
+                                    )
+                                } else {
+                                    Some(
+                                        Color {
+                                            a: 1.0,
+                                            r: 1.0,
+                                            g: 1.0,
+                                            b: 1.0,
+                                        }
+                                        .into(),
+                                    )
+                                },
+                                ..container::Style::default()
+                            }),
                     )
-                    .padding(2)
+                    .on_press(Message::SearchClicked(search_match.to_string()))
+                    .on_enter(Message::ResultEntered(search_match.to_string()))
+                    .on_exit(Message::ResultExited(search_match.to_string()))
                     .into(),
                 )
             },
@@ -118,6 +151,20 @@ impl Launcher {
                 Ok(v) => Some(v),
                 Err(_) => None,
             },
+            Message::ResultEntered(search_match) => {
+                self.result_hovered = Some(search_match);
+                None
+            }
+            Message::ResultExited(search_match) => {
+                if self
+                    .result_hovered
+                    .as_mut()
+                    .is_some_and(|v| *v == search_match)
+                {
+                    self.result_hovered = None;
+                }
+                None
+            }
         }
     }
 
