@@ -1,5 +1,5 @@
 use app_launcher::AppLauncher;
-use apps::{JsonBeautifier, UUIDGenerator};
+use apps::{Base64Converter, JsonBeautifier, UuidGenerator};
 use iced::event::{self};
 use iced::keyboard::{self};
 use iced::widget::{self};
@@ -31,16 +31,17 @@ pub struct DevTools {
 }
 
 enum Screen {
-    UUIDGenerator(UUIDGenerator),
+    UuidGenerator(UuidGenerator),
     JsonBeautifier(JsonBeautifier),
+    Base64Converter(Base64Converter),
 }
 
 impl Default for DevTools {
     fn default() -> Self {
         Self {
             launcher: AppLauncher::new(),
-            screen: Screen::UUIDGenerator(UUIDGenerator::new()),
-            current_application: Application::UUIDGenerator,
+            screen: Screen::UuidGenerator(UuidGenerator::new()),
+            current_application: Application::UuidGenerator,
             is_modal_open: false,
             scale_factor: ScaleFactor::default(),
         }
@@ -58,8 +59,8 @@ impl DevTools {
 
     fn update(&mut self, event: Message) -> Task<Message> {
         match event {
-            Message::UUIDGenerator(message) => {
-                if let Screen::UUIDGenerator(uuid_generator) = &mut self.screen {
+            Message::UuidGenerator(message) => {
+                if let Screen::UuidGenerator(uuid_generator) = &mut self.screen {
                     uuid_generator.update(message);
                     Task::none()
                 } else {
@@ -86,8 +87,11 @@ impl DevTools {
                                 Application::JsonBeautifier => {
                                     Screen::JsonBeautifier(JsonBeautifier::new())
                                 }
-                                Application::UUIDGenerator => {
-                                    Screen::UUIDGenerator(UUIDGenerator::new())
+                                Application::UuidGenerator => {
+                                    Screen::UuidGenerator(UuidGenerator::new())
+                                }
+                                Application::Base64Converter => {
+                                    Screen::Base64Converter(Base64Converter::new())
                                 }
                             };
                             widget::text_input::focus("app-launcher-text-input")
@@ -141,16 +145,20 @@ impl DevTools {
                 }
                 _ => Task::none(),
             },
+            _ => Task::none(),
         }
     }
 
     fn view(&self) -> Element<Message> {
         let content = match &self.screen {
-            Screen::UUIDGenerator(uuid_generator) => {
-                uuid_generator.view().map(Message::UUIDGenerator)
+            Screen::UuidGenerator(uuid_generator) => {
+                uuid_generator.view().map(Message::UuidGenerator)
             }
             Screen::JsonBeautifier(json_beautifier) => {
                 json_beautifier.view().map(Message::JsonBeautifier)
+            }
+            Screen::Base64Converter(base64_converter) => {
+                base64_converter.view().map(Message::Base64Converter)
             }
         };
         let launcher_content = self.launcher.view().map(Message::AppLauncher);

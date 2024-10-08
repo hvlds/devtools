@@ -6,13 +6,13 @@ use uuid::Uuid;
 
 use crate::utils::Version;
 
-impl Default for UUIDGenerator {
+impl Default for UuidGenerator {
     fn default() -> Self {
-        UUIDGenerator::new()
+        UuidGenerator::new()
     }
 }
 
-pub struct UUIDGenerator {
+pub struct UuidGenerator {
     selected_version: Option<Version>,
     value: Uuid,
 }
@@ -23,7 +23,7 @@ pub enum Message {
     Selected(Version),
 }
 
-impl UUIDGenerator {
+impl UuidGenerator {
     pub fn new() -> Self {
         Self {
             selected_version: Some(Version::V4),
