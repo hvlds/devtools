@@ -1,19 +1,19 @@
-use app_launcher::AppLauncher;
-use apps::{Base64Converter, JsonBeautifier, UuidGenerator};
 use iced::event::{self};
 use iced::keyboard::{self};
 use iced::widget::{self, column, container, horizontal_space, row, text};
 use iced::Alignment::Center;
 use iced::{Element, Event, Subscription, Task, Theme};
+use launcher::Launcher;
 use modal::modal;
+use tools::{Base64Converter, JsonBeautifier, UuidGenerator};
 
 use scale_factor::ScaleFactor;
-use utils::{Application, Message};
+use utils::{Message, Tool};
 
-mod app_launcher;
-mod apps;
+mod launcher;
 mod modal;
 mod scale_factor;
+mod tools;
 mod utils;
 
 pub fn main() -> iced::Result {
@@ -26,9 +26,9 @@ pub fn main() -> iced::Result {
 
 pub struct DevTools {
     screen: Screen,
-    launcher: AppLauncher,
+    launcher: Launcher,
     is_modal_open: bool,
-    current_application: Application,
+    current_tool: Tool,
     scale_factor: ScaleFactor,
     theme: Theme,
 }
@@ -42,9 +42,9 @@ enum Screen {
 impl Default for DevTools {
     fn default() -> Self {
         Self {
-            launcher: AppLauncher::new(),
+            launcher: Launcher::new(),
             screen: Screen::UuidGenerator(UuidGenerator::new()),
-            current_application: Application::UuidGenerator,
+            current_tool: Tool::UuidGenerator,
             is_modal_open: false,
             scale_factor: ScaleFactor::default(),
             theme: Theme::SolarizedLight,
@@ -82,22 +82,20 @@ impl DevTools {
                     Task::none()
                 }
             }
-            Message::AppLauncher(message) => {
+            Message::Launcher(message) => {
                 let selected_application = self.launcher.update(message);
                 match selected_application {
                     Some(application) => {
                         self.is_modal_open = false;
                         self.launcher.reset();
-                        if application != self.current_application {
-                            self.current_application = application;
+                        if application != self.current_tool {
+                            self.current_tool = application;
                             self.screen = match application {
-                                Application::JsonBeautifier => {
+                                Tool::JsonBeautifier => {
                                     Screen::JsonBeautifier(JsonBeautifier::new())
                                 }
-                                Application::UuidGenerator => {
-                                    Screen::UuidGenerator(UuidGenerator::new())
-                                }
-                                Application::Base64Converter => {
+                                Tool::UuidGenerator => Screen::UuidGenerator(UuidGenerator::new()),
+                                Tool::Base64Converter => {
                                     Screen::Base64Converter(Base64Converter::new())
                                 }
                             };
@@ -189,7 +187,7 @@ impl DevTools {
 
         let content_with_header = column![header, content].into();
 
-        let launcher_content = self.launcher.view().map(Message::AppLauncher);
+        let launcher_content = self.launcher.view().map(Message::Launcher);
         if self.is_modal_open {
             modal(content_with_header, launcher_content, Message::HideModal)
         } else {

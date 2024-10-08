@@ -10,15 +10,15 @@ use nucleo_matcher::{
     Config, Matcher,
 };
 
-use crate::utils::Application;
+use crate::utils::Tool;
 
-impl Default for AppLauncher {
+impl Default for Launcher {
     fn default() -> Self {
-        AppLauncher::new()
+        Launcher::new()
     }
 }
 
-pub struct AppLauncher {
+pub struct Launcher {
     search_text: String,
     search_matches: Vec<String>,
     matcher: Matcher,
@@ -31,7 +31,7 @@ pub enum Message {
     SearchClicked(String),
 }
 
-impl AppLauncher {
+impl Launcher {
     pub fn new() -> Self {
         Self {
             search_text: String::new(),
@@ -85,7 +85,7 @@ impl AppLauncher {
             .into()
     }
 
-    pub fn update(&mut self, message: Message) -> Option<Application> {
+    pub fn update(&mut self, message: Message) -> Option<Tool> {
         match message {
             Message::Search(application) => {
                 self.search_text = application;
@@ -96,7 +96,7 @@ impl AppLauncher {
                     CaseMatching::Ignore,
                     Normalization::Smart,
                 )
-                .match_list(Application::ALL, &mut self.matcher)
+                .match_list(Tool::ALL, &mut self.matcher)
                 .into_iter()
                 .map(|m| m.0.to_string())
                 .collect();
@@ -106,7 +106,7 @@ impl AppLauncher {
             Message::SearchSubmitted => {
                 if self.search_matches.len() >= 1 {
                     let best_match = self.search_matches.get(0).unwrap().as_str();
-                    match Application::from_str(best_match) {
+                    match Tool::from_str(best_match) {
                         Ok(v) => Some(v),
                         Err(_) => None,
                     }
@@ -114,12 +114,10 @@ impl AppLauncher {
                     None
                 }
             }
-            Message::SearchClicked(search_match) => {
-                match Application::from_str(search_match.as_str()) {
-                    Ok(v) => Some(v),
-                    Err(_) => None,
-                }
-            }
+            Message::SearchClicked(search_match) => match Tool::from_str(search_match.as_str()) {
+                Ok(v) => Some(v),
+                Err(_) => None,
+            },
         }
     }
 

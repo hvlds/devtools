@@ -13,7 +13,7 @@ impl Default for UuidGenerator {
 pub struct UuidGenerator {
     selected_version: Option<Version>,
     value: Uuid,
-    application_name: String,
+    tool_name: String,
 }
 
 #[derive(Debug, Clone)]
@@ -28,12 +28,12 @@ impl UuidGenerator {
         Self {
             selected_version: Some(Version::V4),
             value: Uuid::new_v4(),
-            application_name: UUID_GENERATOR_NAME.to_string(),
+            tool_name: UUID_GENERATOR_NAME.to_string(),
         }
     }
 
     pub fn title(&self) -> String {
-        self.application_name.clone()
+        self.tool_name.clone()
     }
 
     pub fn view(&self) -> Element<Message> {

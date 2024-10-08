@@ -10,7 +10,7 @@ use crate::utils::BASE64_CONVERTER_NAME;
 pub enum Message {}
 
 pub struct Base64Converter {
-    application_name: String,
+    tool_name: String,
 }
 
 impl Default for Base64Converter {
@@ -22,12 +22,12 @@ impl Default for Base64Converter {
 impl Base64Converter {
     pub fn new() -> Self {
         Self {
-            application_name: BASE64_CONVERTER_NAME.to_string(),
+            tool_name: BASE64_CONVERTER_NAME.to_string(),
         }
     }
 
     pub fn title(&self) -> String {
-        self.application_name.clone()
+        self.tool_name.clone()
     }
 
     pub fn view(&self) -> Element<Message> {

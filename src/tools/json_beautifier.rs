@@ -19,7 +19,7 @@ pub struct JsonBeautifier {
     error_text: Option<String>,
     theme: highlighter::Theme,
     indentation: u16,
-    application_name: String,
+    tool_name: String,
 }
 
 #[derive(Debug, Clone)]
@@ -37,12 +37,12 @@ impl JsonBeautifier {
             error_text: None,
             theme: highlighter::Theme::InspiredGitHub,
             indentation: 4,
-            application_name: JSON_BEAUTIFIER_NAME.to_string(),
+            tool_name: JSON_BEAUTIFIER_NAME.to_string(),
         }
     }
 
     pub fn title(&self) -> String {
-        self.application_name.clone()
+        self.tool_name.clone()
     }
 
     pub fn view(&self) -> Element<Message> {
