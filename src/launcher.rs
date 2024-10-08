@@ -41,7 +41,7 @@ impl Launcher {
     }
 
     pub fn view(&self) -> Element<Message> {
-        let input_app = text_input("Search an app...", &self.search_text)
+        let input_app = text_input("Search a tool...", &self.search_text)
             .on_input(Message::Search)
             .on_submit(Message::SearchSubmitted)
             .id("app-launcher-text-input");
