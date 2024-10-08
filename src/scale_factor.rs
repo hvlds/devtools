@@ -33,4 +33,8 @@ impl ScaleFactor {
             self.0 -= 0.2;
         }
     }
+
+    pub fn to_default(&mut self) {
+        self.0 = 1.0;
+    }
 }

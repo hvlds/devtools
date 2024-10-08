@@ -2,8 +2,8 @@ use std::str::FromStr;
 
 use iced::{
     border,
-    widget::{column, container, keyed_column, text, text_input},
-    Color, Element,
+    widget::{button, column, container, keyed_column, text, text_input},
+    Color, Element, Length,
 };
 use nucleo_matcher::{
     pattern::{CaseMatching, Normalization, Pattern},
@@ -45,12 +45,20 @@ impl AppLauncher {
             .on_submit(Message::SearchSubmitted)
             .id("app-launcher-text-input");
 
-        let results = keyed_column(
-            self.search_matches
-                .iter()
-                .enumerate()
-                .map(|(i, search_match)| (i, text(search_match).into())),
-        );
+        let results = container(keyed_column(self.search_matches.iter().enumerate().map(
+            |(i, search_match)| {
+                (
+                    i,
+                    container(button(search_match.as_str()).width(Length::Fill))
+                        .padding(2)
+                        .into(),
+                )
+            },
+        )))
+        .style(|_theme| container::Style {
+            background: Some(Color::WHITE.into()),
+            ..container::Style::default()
+        });
 
         let content = column![input_app, results].padding(10);
 

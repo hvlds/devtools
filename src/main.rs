@@ -143,6 +143,14 @@ impl DevTools {
                     self.scale_factor.decrement();
                     Task::none()
                 }
+                Event::Keyboard(keyboard::Event::KeyPressed {
+                    key: keyboard::Key::Character(c),
+                    modifiers,
+                    ..
+                }) if c.as_str() == "0" && modifiers.control() => {
+                    self.scale_factor.to_default();
+                    Task::none()
+                }
                 _ => Task::none(),
             },
             _ => Task::none(),
