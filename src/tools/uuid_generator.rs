@@ -1,4 +1,4 @@
-use iced::widget::{button, column, container, mouse_area, pick_list, row, text};
+use iced::widget::{button, column, container, mouse_area, pick_list, row, text, Space};
 use iced::{clipboard, Element, Length, Task};
 use uuid::Uuid;
 
@@ -46,6 +46,7 @@ impl UuidGenerator {
                         .placeholder("Choose a version")
                 ],
                 button("Generate UUID").on_press(Message::Generated),
+                Space::with_height(10),
                 "Result",
                 mouse_area(container(text(format!("{}", self.value)).size(18)))
                     .on_press(Message::ResultCopied)
