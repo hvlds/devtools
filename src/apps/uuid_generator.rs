@@ -1,7 +1,8 @@
-use iced::widget::{button, column, container, horizontal_space, pick_list, row, text};
+use iced::widget::{
+    button, column, container, horizontal_space, mouse_area, pick_list, row, text, text_input,
+};
 use iced::Alignment::Center;
-use iced::Element;
-use iced::Length::Fill;
+use iced::{clipboard, Element, Length, Task};
 use uuid::Uuid;
 
 use crate::utils::Version;
@@ -21,6 +22,7 @@ pub struct UuidGenerator {
 pub enum Message {
     Generated,
     Selected(Version),
+    ResultCopied,
 }
 
 impl UuidGenerator {
@@ -33,43 +35,56 @@ impl UuidGenerator {
 
     pub fn view(&self) -> Element<Message> {
         let header = container(
-            row![text("UUID Generator").size(30), horizontal_space(),]
+            row![text("UUID Generator").size(20), horizontal_space(),]
                 .padding(10)
                 .align_y(Center),
-        )
-        .style(container::rounded_box);
+        );
 
         let content = container(
             column![
-                pick_list(&Version::ALL[..], self.selected_version, Message::Selected,)
-                    .placeholder("Choose a version"),
+                "Configuration",
+                row![
+                    "Version: ",
+                    pick_list(&Version::ALL[..], self.selected_version, Message::Selected,)
+                        .placeholder("Choose a version")
+                ],
                 button("Generate UUID").on_press(Message::Generated),
-                text(format!("{}", self.value)).size(30)
+                "Result",
+                mouse_area(container(text(format!("{}", self.value)).size(18)))
+                    .on_press(Message::ResultCopied)
             ]
             .spacing(20),
         )
         .padding(10)
-        .height(Fill);
+        .height(Length::Fill);
 
         column![header, content].into()
     }
 
-    pub fn update(&mut self, message: Message) {
+    pub fn update(&mut self, message: Message) -> Task<Message> {
         match message {
             Message::Generated => match self.selected_version {
-                Some(version) => match version {
-                    Version::V4 => self.value = Uuid::new_v4(),
-                    Version::V7 => self.value = Uuid::now_v7(),
-                },
-                None => self.value = Uuid::new_v4(),
+                Some(version) => {
+                    match version {
+                        Version::V4 => self.value = Uuid::new_v4(),
+                        Version::V7 => self.value = Uuid::now_v7(),
+                    };
+                    Task::none()
+                }
+                None => {
+                    self.value = Uuid::new_v4();
+                    Task::none()
+                }
             },
             Message::Selected(version) => {
                 self.selected_version = Some(version);
                 match version {
                     Version::V4 => self.value = Uuid::new_v4(),
                     Version::V7 => self.value = Uuid::now_v7(),
-                }
+                };
+                Task::none()
             }
+            Message::ResultCopied => clipboard::write::<Message>(self.value.to_string()),
         }
     }
 }

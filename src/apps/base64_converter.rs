@@ -22,11 +22,10 @@ impl Base64Converter {
 
     pub fn view(&self) -> Element<Message> {
         let header = container(
-            row![text("Base64 Converter").size(30), horizontal_space(),]
+            row![text("Base64 Converter").size(20), horizontal_space(),]
                 .padding(10)
                 .align_y(Center),
-        )
-        .style(container::rounded_box);
+        );
 
         column![header, vertical_space()].into()
     }

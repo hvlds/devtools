@@ -3,7 +3,7 @@ use apps::{Base64Converter, JsonBeautifier, UuidGenerator};
 use iced::event::{self};
 use iced::keyboard::{self};
 use iced::widget::{self};
-use iced::{Element, Event, Subscription, Task};
+use iced::{Element, Event, Subscription, Task, Theme};
 use modal::modal;
 
 use scale_factor::ScaleFactor;
@@ -17,6 +17,7 @@ mod utils;
 
 pub fn main() -> iced::Result {
     iced::application("DevTools", DevTools::update, DevTools::view)
+        .theme(DevTools::theme)
         .subscription(DevTools::subscription)
         .scale_factor(DevTools::get_scale_factor)
         .run()
@@ -28,6 +29,7 @@ pub struct DevTools {
     is_modal_open: bool,
     current_application: Application,
     scale_factor: ScaleFactor,
+    theme: Theme,
 }
 
 enum Screen {
@@ -44,11 +46,16 @@ impl Default for DevTools {
             current_application: Application::UuidGenerator,
             is_modal_open: false,
             scale_factor: ScaleFactor::default(),
+            theme: Theme::SolarizedLight,
         }
     }
 }
 
 impl DevTools {
+    fn theme(&self) -> Theme {
+        self.theme.clone()
+    }
+
     fn get_scale_factor(&self) -> f64 {
         self.scale_factor.into()
     }
@@ -61,8 +68,7 @@ impl DevTools {
         match event {
             Message::UuidGenerator(message) => {
                 if let Screen::UuidGenerator(uuid_generator) = &mut self.screen {
-                    uuid_generator.update(message);
-                    Task::none()
+                    uuid_generator.update(message).map(Message::UuidGenerator)
                 } else {
                     Task::none()
                 }

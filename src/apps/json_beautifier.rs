@@ -39,11 +39,10 @@ impl JsonBeautifier {
 
     pub fn view(&self) -> Element<Message> {
         let header = container(
-            row![text("Json Beautifier").size(30), horizontal_space(),]
+            row![text("Json Beautifier").size(20), horizontal_space(),]
                 .padding(10)
                 .align_y(Center),
-        )
-        .style(container::rounded_box);
+        );
 
         let controls = row![
             slider(0..=8, self.indentation, Message::IndentationChanged),

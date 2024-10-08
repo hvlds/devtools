@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use iced::{
     border,
-    widget::{button, column, container, keyed_column, text, text_input},
+    widget::{button, column, container, keyed_column, text_input},
     Color, Element, Length,
 };
 use nucleo_matcher::{
