@@ -50,9 +50,13 @@ impl AppLauncher {
             |(i, search_match)| {
                 (
                     i,
-                    container(button(search_match.as_str()).on_press(Message::SearchClicked(search_match.to_string())).width(Length::Fill))
-                        .padding(2)
-                        .into(),
+                    container(
+                        button(search_match.as_str())
+                            .on_press(Message::SearchClicked(search_match.to_string()))
+                            .width(Length::Fill),
+                    )
+                    .padding(2)
+                    .into(),
                 )
             },
         )))
@@ -108,6 +112,12 @@ impl AppLauncher {
                     }
                 } else {
                     None
+                }
+            }
+            Message::SearchClicked(search_match) => {
+                match Application::from_str(search_match.as_str()) {
+                    Ok(v) => Some(v),
+                    Err(_) => None,
                 }
             }
         }
