@@ -1,7 +1,6 @@
 use iced::{
-    widget::{column, container, horizontal_space, row, text, vertical_space},
-    Alignment::Center,
-    Element,
+    widget::{horizontal_space, row, text},
+    Element, Length,
 };
 
 use crate::utils::BASE64_CONVERTER_NAME;
@@ -31,6 +30,8 @@ impl Base64Converter {
     }
 
     pub fn view(&self) -> Element<Message> {
-        text("dummy").into()
+        row![text("dummy"), horizontal_space()]
+            .height(Length::Fill)
+            .into()
     }
 }
