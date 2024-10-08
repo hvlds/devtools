@@ -28,6 +28,7 @@ pub struct AppLauncher {
 pub enum Message {
     Search(String),
     SearchSubmitted,
+    SearchClicked(String),
 }
 
 impl AppLauncher {
@@ -49,7 +50,7 @@ impl AppLauncher {
             |(i, search_match)| {
                 (
                     i,
-                    container(button(search_match.as_str()).width(Length::Fill))
+                    container(button(search_match.as_str()).on_press(Message::SearchClicked(search_match.to_string())).width(Length::Fill))
                         .padding(2)
                         .into(),
                 )
