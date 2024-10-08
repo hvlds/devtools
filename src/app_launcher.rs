@@ -1,8 +1,9 @@
 use std::str::FromStr;
 
 use iced::{
+    border,
     widget::{column, container, keyed_column, text, text_input},
-    Element,
+    Color, Element,
 };
 use nucleo_matcher::{
     pattern::{CaseMatching, Normalization, Pattern},
@@ -55,7 +56,19 @@ impl AppLauncher {
 
         container(content)
             .center_x(500)
-            .style(container::rounded_box)
+            .style(|_theme| container::Style {
+                border: border::rounded(10),
+                background: Some(
+                    Color {
+                        a: 0.7,
+                        r: 1.0,
+                        g: 0.5,
+                        b: 0.0,
+                    }
+                    .into(),
+                ),
+                ..container::Style::default()
+            })
             .into()
     }
 
