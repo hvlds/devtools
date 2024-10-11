@@ -1,9 +1,9 @@
 use iced::widget::text_editor::Action;
 use iced::widget::{
-    button, column, container, horizontal_space, pick_list, row, text, text_editor, text_input,
-    Space,
+    button, column, container, horizontal_space, pick_list, row, scrollable, text, text_editor,
+    text_input, Space,
 };
-use iced::{Element, Length, Task};
+use iced::{Element, Length};
 use uuid::Uuid;
 
 use crate::utils::{Version, UUID_GENERATOR_NAME};
@@ -68,7 +68,7 @@ impl UuidGenerator {
                 }),
                 Space::with_height(10),
                 "Result",
-                text_editor(&self.output).on_action(Message::OutputActionPerformed)
+                scrollable(text_editor(&self.output).on_action(Message::OutputActionPerformed))
             ]
             .spacing(20),
         )
@@ -81,13 +81,18 @@ impl UuidGenerator {
     pub fn update(&mut self, message: Message) {
         match message {
             Message::Generated => {
-                let value = match self.selected_version {
-                    Some(version) => match version {
-                        Version::V4 => Uuid::new_v4().to_string(),
-                        Version::V7 => Uuid::now_v7().to_string(),
-                    },
-                    None => Uuid::new_v4().to_string(),
-                };
+                let value = (0..self.parsed_amount)
+                    .into_iter()
+                    .map(|_| match self.selected_version {
+                        Some(version) => match version {
+                            Version::V4 => Uuid::new_v4().to_string(),
+                            Version::V7 => Uuid::now_v7().to_string(),
+                        },
+                        None => Uuid::new_v4().to_string(),
+                    })
+                    .reduce(|cur: String, nxt: String| cur + "\n" + &nxt)
+                    .unwrap();
+
                 self.output = text_editor::Content::with_text(value.as_str());
             }
             Message::Selected(version) => {
