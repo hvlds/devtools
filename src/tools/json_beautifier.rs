@@ -123,7 +123,7 @@ impl JsonBeautifier {
                 }
             }
             Message::OutputActionPerformed(action) => match action {
-                Action::SelectAll => {
+                Action::SelectAll | Action::SelectLine | Action::SelectWord => {
                     self.output_content.perform(action);
                 }
                 _ => (),
