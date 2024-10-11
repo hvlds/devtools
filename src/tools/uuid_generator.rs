@@ -1,8 +1,9 @@
 use iced::widget::text_editor::Action;
 use iced::widget::{
-    button, column, container, mouse_area, pick_list, row, text, text_editor, Space,
+    button, column, container, horizontal_space, pick_list, row, text, text_editor, text_input,
+    Space,
 };
-use iced::{clipboard, Element, Length, Task};
+use iced::{Element, Length, Task};
 use uuid::Uuid;
 
 use crate::utils::{Version, UUID_GENERATOR_NAME};
@@ -17,6 +18,9 @@ pub struct UuidGenerator {
     selected_version: Option<Version>,
     output: text_editor::Content,
     tool_name: String,
+    raw_amount: String,
+    parsed_amount: i32,
+    parsing_error: String,
 }
 
 #[derive(Debug, Clone)]
@@ -24,6 +28,7 @@ pub enum Message {
     Generated,
     Selected(Version),
     OutputActionPerformed(text_editor::Action),
+    AmountChanged(String),
 }
 
 impl UuidGenerator {
@@ -32,6 +37,9 @@ impl UuidGenerator {
             selected_version: Some(Version::V4),
             output: text_editor::Content::with_text(Uuid::new_v4().to_string().as_str()),
             tool_name: UUID_GENERATOR_NAME.to_string(),
+            raw_amount: String::from("1"),
+            parsed_amount: 1,
+            parsing_error: String::new(),
         }
     }
 
@@ -48,7 +56,16 @@ impl UuidGenerator {
                     pick_list(&Version::ALL[..], self.selected_version, Message::Selected,)
                         .placeholder("Choose a version")
                 ],
-                button("Generate UUID").on_press(Message::Generated),
+                row![
+                    "Amount: ",
+                    text_input("Amount", self.raw_amount.as_str()).on_input(Message::AmountChanged),
+                    text(self.parsing_error.as_str()),
+                    horizontal_space()
+                ],
+                button("Generate UUID").on_press_maybe(match self.parsing_error.as_str() {
+                    "" => Some(Message::Generated),
+                    _ => None,
+                }),
                 Space::with_height(10),
                 "Result",
                 text_editor(&self.output).on_action(Message::OutputActionPerformed)
@@ -61,7 +78,7 @@ impl UuidGenerator {
         content.into()
     }
 
-    pub fn update(&mut self, message: Message) -> Task<Message> {
+    pub fn update(&mut self, message: Message) {
         match message {
             Message::Generated => {
                 let value = match self.selected_version {
@@ -72,7 +89,6 @@ impl UuidGenerator {
                     None => Uuid::new_v4().to_string(),
                 };
                 self.output = text_editor::Content::with_text(value.as_str());
-                Task::none()
             }
             Message::Selected(version) => {
                 self.selected_version = Some(version);
@@ -81,7 +97,6 @@ impl UuidGenerator {
                     Version::V7 => Uuid::now_v7().to_string(),
                 };
                 self.output = text_editor::Content::with_text(value.as_str());
-                Task::none()
             }
             Message::OutputActionPerformed(action) => {
                 match action {
@@ -95,8 +110,18 @@ impl UuidGenerator {
                     Action::Move(motion) => self.output.perform(Action::Move(motion)),
                     _ => (),
                 };
-                Task::none()
             }
+            Message::AmountChanged(value) => match value.parse::<i32>() {
+                Ok(v) => {
+                    self.raw_amount = value;
+                    self.parsed_amount = v;
+                    self.parsing_error = String::new();
+                }
+                Err(_) => {
+                    self.raw_amount = value.clone();
+                    self.parsing_error = format!("Cannot parse '{}'", value);
+                }
+            },
         }
     }
 }
