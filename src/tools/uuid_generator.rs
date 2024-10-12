@@ -48,32 +48,33 @@ impl UuidGenerator {
     }
 
     pub fn view(&self) -> Element<Message> {
-        let content = container(
-            column![
-                "Configuration",
-                row![
-                    "Version: ",
-                    pick_list(&Version::ALL[..], self.selected_version, Message::Selected,)
-                        .placeholder("Choose a version")
-                ],
-                row![
-                    "Amount: ",
-                    text_input("Amount", self.raw_amount.as_str()).on_input(Message::AmountChanged),
-                    text(self.parsing_error.as_str()),
-                    horizontal_space()
-                ],
-                button("Generate UUID").on_press_maybe(match self.parsing_error.as_str() {
-                    "" => Some(Message::Generated),
-                    _ => None,
-                }),
-                Space::with_height(10),
-                "Result",
-                scrollable(text_editor(&self.output).on_action(Message::OutputActionPerformed))
-            ]
-            .spacing(20),
-        )
-        .padding(10)
-        .height(Length::Fill);
+        let configuration = column![
+            "Configuration",
+            row![
+                "Version: ",
+                pick_list(&Version::ALL[..], self.selected_version, Message::Selected,)
+                    .placeholder("Choose a version")
+            ],
+            row![
+                "Amount: ",
+                text_input("Amount", self.raw_amount.as_str()).on_input(Message::AmountChanged),
+                text(self.parsing_error.as_str()),
+                horizontal_space()
+            ],
+            button("Generate UUID").on_press_maybe(match self.parsing_error.as_str() {
+                "" => Some(Message::Generated),
+                _ => None,
+            }),
+        ];
+
+        let result = column![
+            "Result",
+            scrollable(text_editor(&self.output).on_action(Message::OutputActionPerformed))
+        ];
+
+        let content = container(column![configuration, Space::with_height(10), result].spacing(20))
+            .padding(10)
+            .height(Length::Fill);
 
         content.into()
     }
@@ -119,17 +120,17 @@ impl UuidGenerator {
             Message::AmountChanged(value) => {
                 self.raw_amount = value.clone();
                 match value.parse::<u32>() {
-                Ok(v) => {
+                    Ok(v) => {
                         if v > 0 {
-                    self.parsed_amount = v;
-                    self.parsing_error = String::new();
+                            self.parsed_amount = v;
+                            self.parsing_error = String::new();
                         } else {
                             self.parsing_error = format!("Amount must be at least 1 '{}'", value);
                         }
-                }
-                Err(_) => {
-                    self.parsing_error = format!("Cannot parse '{}'", value);
-                }
+                    }
+                    Err(_) => {
+                        self.parsing_error = format!("Cannot parse '{}'", value);
+                    }
                 };
             }
         }
