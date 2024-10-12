@@ -69,8 +69,7 @@ impl DevTools {
         match event {
             Message::UuidGenerator(message) => {
                 if let Screen::UuidGenerator(uuid_generator) = &mut self.screen {
-                    uuid_generator.update(message);
-                    Task::none()
+                    uuid_generator.update(message).map(Message::UuidGenerator)
                 } else {
                     Task::none()
                 }

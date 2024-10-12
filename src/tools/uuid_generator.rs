@@ -3,7 +3,7 @@ use iced::widget::{
     button, checkbox, column, container, horizontal_space, pick_list, row, scrollable, text,
     text_editor, text_input, Space,
 };
-use iced::{Element, Length};
+use iced::{Element, Length, Task};
 use uuid::Uuid;
 
 pub const NAME: &str = "UUID Generator";
@@ -33,6 +33,7 @@ pub enum Message {
     AmountChanged(String),
     QuotesSelected(Quotes),
     CommaSelected(bool),
+    UuidList(String),
 }
 
 impl UuidGenerator {
@@ -99,31 +100,28 @@ impl UuidGenerator {
         content.into()
     }
 
-    pub fn update(&mut self, message: Message) {
+    pub fn update(&mut self, message: Message) -> Task<Message> {
         match message {
             Message::Generated => {
-                let value = (0..self.parsed_amount)
-                    .into_iter()
-                    .map(|_| match self.selected_version {
-                        Some(version) => match version {
-                            Version::V4 => Uuid::new_v4().to_string(),
-                            Version::V7 => Uuid::now_v7().to_string(),
-                        },
-                        None => Uuid::new_v4().to_string(),
-                    })
-                    .map(|v| wrap_with_quotes(v, self.selected_quotes))
-                    .reduce(
-                        |cur: String, nxt: String| match self.is_separated_by_comma {
-                            true => cur + ",\n" + &nxt,
-                            false => cur + "\n" + &nxt,
-                        },
-                    )
-                    .unwrap();
-
-                self.output = text_editor::Content::with_text(value.as_str());
+                let parsed_amount = self.parsed_amount.clone();
+                let selected_version = self.selected_version.clone();
+                let selected_quotes = self.selected_quotes.clone();
+                let is_separated_by_comma = self.is_separated_by_comma.clone();
+                Task::perform(
+                    async move {
+                        generate_result(
+                            parsed_amount,
+                            selected_version,
+                            selected_quotes,
+                            is_separated_by_comma,
+                        )
+                    },
+                    |res| Message::UuidList(res),
+                )
             }
             Message::Selected(version) => {
                 self.selected_version = Some(version);
+                Task::none()
             }
             Message::OutputActionPerformed(action) => {
                 match action {
@@ -137,6 +135,7 @@ impl UuidGenerator {
                     Action::Move(motion) => self.output.perform(Action::Move(motion)),
                     _ => (),
                 };
+                Task::none()
             }
             Message::AmountChanged(value) => {
                 self.raw_amount = value.clone();
@@ -153,15 +152,45 @@ impl UuidGenerator {
                         self.parsing_error = format!("Cannot parse '{}'", value);
                     }
                 };
+                Task::none()
             }
             Message::QuotesSelected(quotes) => {
                 self.selected_quotes = Some(quotes);
+                Task::none()
             }
             Message::CommaSelected(value) => {
                 self.is_separated_by_comma = value;
+                Task::none()
+            }
+            Message::UuidList(result) => {
+                self.output = text_editor::Content::with_text(result.as_str());
+                Task::none()
             }
         }
     }
+}
+
+fn generate_result(
+    parsed_amount: u32,
+    selected_version: Option<Version>,
+    selected_quotes: Option<Quotes>,
+    is_separated_by_comma: bool,
+) -> String {
+    (0..parsed_amount)
+        .into_iter()
+        .map(|_| match selected_version {
+            Some(version) => match version {
+                Version::V4 => Uuid::new_v4().to_string(),
+                Version::V7 => Uuid::now_v7().to_string(),
+            },
+            None => Uuid::new_v4().to_string(),
+        })
+        .map(|v| wrap_with_quotes(v, selected_quotes))
+        .reduce(|cur: String, nxt: String| match is_separated_by_comma {
+            true => cur + ",\n" + &nxt,
+            false => cur + "\n" + &nxt,
+        })
+        .unwrap()
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
