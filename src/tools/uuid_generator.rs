@@ -6,7 +6,7 @@ use iced::widget::{
 use iced::{Element, Length};
 use uuid::Uuid;
 
-use crate::utils::{Version, UUID_GENERATOR_NAME};
+pub const NAME: &str = "UUID Generator";
 
 impl Default for UuidGenerator {
     fn default() -> Self {
@@ -38,7 +38,7 @@ impl UuidGenerator {
         Self {
             selected_version: Some(Version::V4),
             output: text_editor::Content::with_text(Uuid::new_v4().to_string().as_str()),
-            tool_name: UUID_GENERATOR_NAME.to_string(),
+            tool_name: NAME.to_string(),
             raw_amount: String::from("1"),
             parsed_amount: 1,
             parsing_error: String::new(),

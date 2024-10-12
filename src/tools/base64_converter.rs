@@ -3,7 +3,7 @@ use iced::{
     Element, Length,
 };
 
-use crate::utils::BASE64_CONVERTER_NAME;
+pub const NAME: &str = "Base64 Converter";
 
 #[derive(Debug, Clone)]
 pub enum Message {}
@@ -21,7 +21,7 @@ impl Default for Base64Converter {
 impl Base64Converter {
     pub fn new() -> Self {
         Self {
-            tool_name: BASE64_CONVERTER_NAME.to_string(),
+            tool_name: NAME.to_string(),
         }
     }
 

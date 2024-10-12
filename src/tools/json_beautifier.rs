@@ -6,12 +6,11 @@ use iced::{
         column, container, horizontal_space, row, slider, text,
         text_editor::{self, Action},
     },
-    Alignment::Center,
     Element,
     Length::Fill,
 };
 
-use crate::utils::JSON_BEAUTIFIER_NAME;
+pub const NAME: &str = "JSON Beautifier";
 
 pub struct JsonBeautifier {
     input_content: text_editor::Content,
@@ -37,7 +36,7 @@ impl JsonBeautifier {
             error_text: None,
             theme: highlighter::Theme::InspiredGitHub,
             indentation: 4,
-            tool_name: JSON_BEAUTIFIER_NAME.to_string(),
+            tool_name: NAME.to_string(),
         }
     }
 
@@ -106,8 +105,6 @@ impl JsonBeautifier {
                 let new_text = self.input_content.text().to_owned();
                 if old_text != new_text {
                     let text_content = new_text.as_str();
-                    let pretty_formatter = serde_json::ser::PrettyFormatter::with_indent(b"     ");
-                    // TODO: Try https://stackoverflow.com/a/49087292
                     match serde_json::from_str::<HashMap<String, serde_json::Value>>(text_content) {
                         Ok(serialized_json) => match serde_json::to_string_pretty(&serialized_json)
                         {
