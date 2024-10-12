@@ -106,6 +106,7 @@ impl UuidGenerator {
                         },
                         None => Uuid::new_v4().to_string(),
                     })
+                    .map(|v| wrap_with_quotes(v, self.selected_quotes))
                     .reduce(|cur: String, nxt: String| cur + "\n" + &nxt)
                     .unwrap();
 
@@ -202,5 +203,16 @@ impl std::fmt::Display for Quotes {
                 Quotes::DoubleQuotes => "Double Quotes",
             }
         )
+    }
+}
+
+fn wrap_with_quotes(text: String, quote_type: Option<Quotes>) -> String {
+    match quote_type {
+        Some(v) => match v {
+            Quotes::NoQuotes => text,
+            Quotes::DoubleQuotes => format!("\"{}\"", text),
+            Quotes::SingleQuotes => format!("'{}'", text),
+        },
+        None => text,
     }
 }
