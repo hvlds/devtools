@@ -19,7 +19,7 @@ pub struct UuidGenerator {
     output: text_editor::Content,
     tool_name: String,
     raw_amount: String,
-    parsed_amount: i32,
+    parsed_amount: u32,
     parsing_error: String,
 }
 
@@ -116,17 +116,22 @@ impl UuidGenerator {
                     _ => (),
                 };
             }
-            Message::AmountChanged(value) => match value.parse::<i32>() {
+            Message::AmountChanged(value) => {
+                self.raw_amount = value.clone();
+                match value.parse::<u32>() {
                 Ok(v) => {
-                    self.raw_amount = value;
+                        if v > 0 {
                     self.parsed_amount = v;
                     self.parsing_error = String::new();
+                        } else {
+                            self.parsing_error = format!("Amount must be at least 1 '{}'", value);
+                        }
                 }
                 Err(_) => {
-                    self.raw_amount = value.clone();
                     self.parsing_error = format!("Cannot parse '{}'", value);
                 }
-            },
+                };
+            }
         }
     }
 }
