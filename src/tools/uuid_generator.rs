@@ -1,7 +1,7 @@
 use iced::widget::text_editor::Action;
 use iced::widget::{
-    button, column, container, horizontal_space, pick_list, row, scrollable, text, text_editor,
-    text_input, Space,
+    button, checkbox, column, container, horizontal_space, pick_list, row, scrollable, text,
+    text_editor, text_input, Space,
 };
 use iced::{Element, Length};
 use uuid::Uuid;
@@ -22,6 +22,7 @@ pub struct UuidGenerator {
     parsed_amount: u32,
     parsing_error: String,
     selected_quotes: Option<Quotes>,
+    is_separated_by_comma: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -31,6 +32,7 @@ pub enum Message {
     OutputActionPerformed(text_editor::Action),
     AmountChanged(String),
     QuotesSelected(Quotes),
+    CommaSelected(bool),
 }
 
 impl UuidGenerator {
@@ -43,6 +45,7 @@ impl UuidGenerator {
             parsed_amount: 1,
             parsing_error: String::new(),
             selected_quotes: Some(Quotes::NoQuotes),
+            is_separated_by_comma: false,
         }
     }
 
@@ -72,6 +75,8 @@ impl UuidGenerator {
                     Message::QuotesSelected
                 )
             ],
+            row![checkbox("Separate by comma", self.is_separated_by_comma)
+                .on_toggle(Message::CommaSelected)],
             button("Generate UUID").on_press_maybe(match self.parsing_error.as_str() {
                 "" => Some(Message::Generated),
                 _ => None,
@@ -107,18 +112,18 @@ impl UuidGenerator {
                         None => Uuid::new_v4().to_string(),
                     })
                     .map(|v| wrap_with_quotes(v, self.selected_quotes))
-                    .reduce(|cur: String, nxt: String| cur + "\n" + &nxt)
+                    .reduce(
+                        |cur: String, nxt: String| match self.is_separated_by_comma {
+                            true => cur + ",\n" + &nxt,
+                            false => cur + "\n" + &nxt,
+                        },
+                    )
                     .unwrap();
 
                 self.output = text_editor::Content::with_text(value.as_str());
             }
             Message::Selected(version) => {
                 self.selected_version = Some(version);
-                let value = match version {
-                    Version::V4 => Uuid::new_v4().to_string(),
-                    Version::V7 => Uuid::now_v7().to_string(),
-                };
-                self.output = text_editor::Content::with_text(value.as_str());
             }
             Message::OutputActionPerformed(action) => {
                 match action {
@@ -151,6 +156,9 @@ impl UuidGenerator {
             }
             Message::QuotesSelected(quotes) => {
                 self.selected_quotes = Some(quotes);
+            }
+            Message::CommaSelected(value) => {
+                self.is_separated_by_comma = value;
             }
         }
     }
