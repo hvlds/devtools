@@ -21,6 +21,7 @@ pub struct UuidGenerator {
     raw_amount: String,
     parsed_amount: u32,
     parsing_error: String,
+    selected_quotes: Option<Quotes>,
 }
 
 #[derive(Debug, Clone)]
@@ -29,6 +30,7 @@ pub enum Message {
     Selected(Version),
     OutputActionPerformed(text_editor::Action),
     AmountChanged(String),
+    QuotesSelected(Quotes),
 }
 
 impl UuidGenerator {
@@ -40,6 +42,7 @@ impl UuidGenerator {
             raw_amount: String::from("1"),
             parsed_amount: 1,
             parsing_error: String::new(),
+            selected_quotes: Some(Quotes::NoQuotes),
         }
     }
 
@@ -61,18 +64,30 @@ impl UuidGenerator {
                 text(self.parsing_error.as_str()),
                 horizontal_space()
             ],
+            row![
+                "Wrap with quotes",
+                pick_list(
+                    &Quotes::ALL[..],
+                    self.selected_quotes,
+                    Message::QuotesSelected
+                )
+            ],
             button("Generate UUID").on_press_maybe(match self.parsing_error.as_str() {
                 "" => Some(Message::Generated),
                 _ => None,
             }),
-        ];
+        ]
+        .padding(10)
+        .spacing(10);
 
         let result = column![
             "Result",
             scrollable(text_editor(&self.output).on_action(Message::OutputActionPerformed))
-        ];
+        ]
+        .padding(10)
+        .spacing(10);
 
-        let content = container(column![configuration, Space::with_height(10), result].spacing(20))
+        let content = container(column![configuration, Space::with_height(20), result])
             .padding(10)
             .height(Length::Fill);
 
@@ -133,6 +148,59 @@ impl UuidGenerator {
                     }
                 };
             }
+            Message::QuotesSelected(quotes) => {
+                self.selected_quotes = Some(quotes);
+            }
         }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum Version {
+    V4,
+    #[default]
+    V7,
+}
+
+impl Version {
+    pub const ALL: [Version; 2] = [Version::V4, Version::V7];
+}
+
+impl std::fmt::Display for Version {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Version::V4 => "Version 4",
+                Version::V7 => "Version 7",
+            }
+        )
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum Quotes {
+    #[default]
+    NoQuotes,
+    SingleQuotes,
+    DoubleQuotes,
+}
+
+impl Quotes {
+    const ALL: [Quotes; 3] = [Quotes::NoQuotes, Quotes::SingleQuotes, Quotes::DoubleQuotes];
+}
+
+impl std::fmt::Display for Quotes {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Quotes::NoQuotes => "No Quotes",
+                Quotes::SingleQuotes => "Single Quotes",
+                Quotes::DoubleQuotes => "Double Quotes",
+            }
+        )
     }
 }
