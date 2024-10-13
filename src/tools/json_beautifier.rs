@@ -3,8 +3,8 @@ use std::collections::HashMap;
 use iced::{
     highlighter,
     widget::{
-        column, container, horizontal_space, row, slider, text,
-        text_editor::{self, Action},
+        button, column, container, horizontal_space, row, scrollable, slider, text,
+        text_editor::{self, Action}, Space,
     },
     Element,
     Length::Fill,
@@ -51,12 +51,11 @@ impl JsonBeautifier {
         ]
         .padding(20);
 
-        let editor = container(
+        let editor = container(scrollable(
             iced::widget::text_editor(&self.input_content)
                 .on_action(Message::InputActionPerformed)
-                .highlight("js", self.theme)
-                .height(Fill),
-        )
+                .highlight("js", self.theme),
+        ))
         .height(Fill);
 
         let status = row![
@@ -69,17 +68,26 @@ impl JsonBeautifier {
         ]
         .spacing(10);
 
-        let output = container(
+        let output = container(scrollable(
             iced::widget::text_editor(&self.output_content)
                 .on_action(Message::OutputActionPerformed)
-                .highlight("js", self.theme)
-                .height(Fill),
-        )
+                .highlight("js", self.theme),
+        ))
         .height(Fill);
 
         let json_rows = row![
-            column![row![text("Input"), horizontal_space()], editor, status].padding(10),
-            column![row![text("Output"), horizontal_space()], output].padding(10),
+            column![row![text("Input"), horizontal_space()].height(50), editor, status].padding(10),
+            column![
+                row![
+                    text("Output"),
+                    horizontal_space(),
+                    button("Copy to Clipboard"),
+                    Space::with_width(10),
+                    button("Save to file")
+                ].height(50),
+                output
+            ]
+            .padding(10),
         ]
         .padding(20);
 
