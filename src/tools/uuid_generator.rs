@@ -1,9 +1,12 @@
+use std::fs;
+
 use iced::widget::text_editor::Action;
 use iced::widget::{
     button, checkbox, column, container, horizontal_space, pick_list, row, scrollable, text,
     text_editor, text_input, Space,
 };
 use iced::{Element, Length, Task};
+use rfd::{AsyncFileDialog, FileHandle};
 use uuid::Uuid;
 
 pub const NAME: &str = "UUID Generator";
@@ -34,6 +37,8 @@ pub enum Message {
     QuotesSelected(Quotes),
     CommaSelected(bool),
     UuidList(String),
+    SaveToFileClicked,
+    FilePicked(Option<FileHandle>),
 }
 
 impl UuidGenerator {
@@ -87,7 +92,11 @@ impl UuidGenerator {
         .spacing(10);
 
         let result = column![
-            "Result",
+            row![
+                "Result",
+                horizontal_space(),
+                button("Save to file").on_press(Message::SaveToFileClicked)
+            ],
             scrollable(text_editor(&self.output).on_action(Message::OutputActionPerformed))
         ]
         .padding(10)
@@ -166,6 +175,20 @@ impl UuidGenerator {
                 self.output = text_editor::Content::with_text(result.as_str());
                 Task::none()
             }
+            Message::SaveToFileClicked => Task::perform(
+                AsyncFileDialog::new().set_directory("/").save_file(),
+                |res| Message::FilePicked(res),
+            ),
+            Message::FilePicked(file_handle) => match file_handle {
+                Some(file) => {
+                    match fs::write(file.path().as_os_str(), self.output.text()) {
+                        Ok(_) => println!("File created"),
+                        Err(e) => println!("Error"),
+                    };
+                    Task::none()
+                }
+                None => Task::none(),
+            },
         }
     }
 }
