@@ -47,7 +47,7 @@ impl Default for DevTools {
             current_tool: Tool::UuidGenerator,
             is_modal_open: false,
             scale_factor: ScaleFactor::default(),
-            theme: Theme::SolarizedLight,
+            theme: Theme::Light,
         }
     }
 }
