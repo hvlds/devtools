@@ -6,7 +6,7 @@ use iced::widget::{
     text_editor, text_input, Space,
 };
 use iced::{Element, Length, Task};
-use rfd::{AsyncFileDialog, FileHandle};
+use rfd::AsyncFileDialog;
 use uuid::Uuid;
 
 pub const NAME: &str = "UUID Generator";
@@ -38,14 +38,14 @@ pub enum Message {
     CommaSelected(bool),
     UuidList(String),
     SaveToFileClicked,
-    FilePicked(Option<FileHandle>),
+    FilePicked(Option<bool>),
 }
 
 impl UuidGenerator {
     pub fn new() -> Self {
         Self {
             selected_version: Some(Version::V4),
-            output: text_editor::Content::with_text(Uuid::new_v4().to_string().as_str()),
+            output: text_editor::Content::with_text(""),
             tool_name: NAME.to_string(),
             raw_amount: String::from("1"),
             parsed_amount: 1,
@@ -57,6 +57,22 @@ impl UuidGenerator {
 
     pub fn title(&self) -> String {
         self.tool_name.clone()
+    }
+
+    fn can_display(&self) -> bool {
+        if self.parsing_error.as_str() == "" && self.parsed_amount <= 1000 {
+            true
+        } else {
+            false
+        }
+    }
+
+    fn can_export(&self) -> bool {
+        if self.parsing_error.as_str() == "" {
+            true
+        } else {
+            false
+        }
     }
 
     pub fn view(&self) -> Element<Message> {
@@ -83,20 +99,23 @@ impl UuidGenerator {
             ],
             row![checkbox("Separate by comma", self.is_separated_by_comma)
                 .on_toggle(Message::CommaSelected)],
-            button("Generate UUID").on_press_maybe(match self.parsing_error.as_str() {
-                "" => Some(Message::Generated),
-                _ => None,
-            }),
+            row![
+                button("Generate UUID").on_press_maybe(match self.can_display() {
+                    true => Some(Message::Generated),
+                    false => None,
+                }),
+                Space::with_width(10),
+                button("Save to file").on_press_maybe(match self.can_export() {
+                    true => Some(Message::SaveToFileClicked),
+                    false => None,
+                })
+            ],
         ]
         .padding(10)
         .spacing(10);
 
         let result = column![
-            row![
-                "Result",
-                horizontal_space(),
-                button("Save to file").on_press(Message::SaveToFileClicked)
-            ],
+            "Result",
             scrollable(text_editor(&self.output).on_action(Message::OutputActionPerformed))
         ]
         .padding(10)
@@ -175,16 +194,24 @@ impl UuidGenerator {
                 self.output = text_editor::Content::with_text(result.as_str());
                 Task::none()
             }
-            Message::SaveToFileClicked => Task::perform(
-                AsyncFileDialog::new().set_directory("/").save_file(),
-                |res| Message::FilePicked(res),
-            ),
+            Message::SaveToFileClicked => {
+                let parsed_amount = self.parsed_amount.clone();
+                let selected_version = self.selected_version.clone();
+                let selected_quotes = self.selected_quotes.clone();
+                let is_separated_by_comma = self.is_separated_by_comma.clone();
+                Task::perform(
+                    generate_and_save_to_file(
+                        parsed_amount,
+                        selected_version,
+                        selected_quotes,
+                        is_separated_by_comma,
+                    ),
+                    |res| Message::FilePicked(res),
+                )
+            }
             Message::FilePicked(file_handle) => match file_handle {
-                Some(file) => {
-                    match fs::write(file.path().as_os_str(), self.output.text()) {
-                        Ok(_) => println!("File created"),
-                        Err(e) => println!("Error"),
-                    };
+                Some(_) => {
+                    println!("File created!");
                     Task::none()
                 }
                 None => Task::none(),
@@ -214,6 +241,30 @@ fn generate_result(
             false => cur + "\n" + &nxt,
         })
         .unwrap()
+}
+
+async fn generate_and_save_to_file(
+    parsed_amount: u32,
+    selected_version: Option<Version>,
+    selected_quotes: Option<Quotes>,
+    is_separated_by_comma: bool,
+) -> Option<bool> {
+    let file = AsyncFileDialog::new().set_directory("/").save_file().await;
+    match file {
+        Some(f) => {
+            let output = generate_result(
+                parsed_amount,
+                selected_version,
+                selected_quotes,
+                is_separated_by_comma,
+            );
+            match fs::write(f.path().as_os_str(), output) {
+                Ok(_) => Some(true),
+                Err(_) => None,
+            }
+        }
+        None => None,
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
