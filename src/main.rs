@@ -82,6 +82,14 @@ impl DevTools {
                     Task::none()
                 }
             }
+            Message::Base64Converter(message) => {
+                if let Screen::Base64Converter(base64_converter) = &mut self.screen {
+                    base64_converter.update(message);
+                    Task::none()
+                } else {
+                    Task::none()
+                }
+            }
             Message::Launcher(message) => {
                 let selected_application = self.launcher.update(message);
                 match selected_application {
