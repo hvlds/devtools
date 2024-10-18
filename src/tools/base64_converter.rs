@@ -1,5 +1,6 @@
+use base64::{engine::general_purpose, Engine as _};
 use iced::{
-    widget::{column, container, text_input},
+    widget::{column, container, scrollable, text_editor},
     Element, Length,
 };
 
@@ -7,22 +8,14 @@ pub const NAME: &str = "Base64 Converter";
 
 #[derive(Debug, Clone)]
 pub enum Message {
-    DecodedTextChanged(String),
-    EncodedTextChanged(String),
-}
-
-#[derive(Debug, Clone, Default)]
-enum Mode {
-    #[default]
-    Encode,
-    Decode,
+    DecodedTextChanged(text_editor::Action),
+    EncodedTextChanged(text_editor::Action),
 }
 
 pub struct Base64Converter {
     tool_name: String,
-    encoded_text: String,
-    decoded_text: String,
-    active_mode: Mode,
+    encoded_input: text_editor::Content,
+    decoded_input: text_editor::Content,
 }
 
 impl Default for Base64Converter {
@@ -35,9 +28,8 @@ impl Base64Converter {
     pub fn new() -> Self {
         Self {
             tool_name: NAME.to_string(),
-            encoded_text: String::new(),
-            decoded_text: String::new(),
-            active_mode: Mode::default(),
+            encoded_input: text_editor::Content::new(),
+            decoded_input: text_editor::Content::new(),
         }
     }
 
@@ -46,19 +38,56 @@ impl Base64Converter {
     }
 
     pub fn view(&self) -> Element<Message> {
-        let controls = column![
+        let decoded_panel = column![
             "Decoded",
-            text_input("", self.decoded_text.as_str()).on_input_maybe(match self.active_mode {
-                Mode::Encode => Some(Message::DecodedTextChanged),
-                Mode::Decode => None,
-            }),
-            "Encoded",
-            text_input("", self.encoded_text.as_str()).on_input_maybe(match self.active_mode {
-                Mode::Encode => None,
-                Mode::Decode => Some(Message::EncodedTextChanged),
-            }),
+            container(scrollable(
+                text_editor(&self.decoded_input).on_action(Message::DecodedTextChanged)
+            ))
+            .height(Length::Fill),
         ];
-        let content = container(controls).padding(10).height(Length::Fill);
+
+        let encoded_panel = column![
+            "Encoded",
+            container(scrollable(
+                text_editor(&self.encoded_input).on_action(Message::EncodedTextChanged)
+            ))
+            .height(Length::Fill),
+        ];
+
+        let content = container(column![decoded_panel, encoded_panel]).padding(10);
         content.into()
+    }
+
+    pub fn update(&mut self, message: Message) {
+        match message {
+            Message::DecodedTextChanged(text_action) => {
+                let old_text = self.decoded_input.text().to_owned();
+                self.decoded_input.perform(text_action);
+                let mut new_text = self.decoded_input.text().to_owned();
+                let len = new_text.trim_end_matches(&['\r', '\n'][..]).len();
+                new_text.truncate(len);
+                if old_text != new_text {
+                    let encoded = general_purpose::STANDARD.encode(new_text.as_bytes());
+                    self.encoded_input = text_editor::Content::with_text(&encoded);
+                }
+            }
+            Message::EncodedTextChanged(text_action) => {
+                let old_text = self.encoded_input.text().to_owned();
+                self.encoded_input.perform(text_action);
+                let mut new_text = self.encoded_input.text().to_owned();
+                let len = new_text.trim_end_matches(&['\r', '\n'][..]).len();
+                new_text.truncate(len);
+                if old_text != new_text {
+                    match general_purpose::STANDARD.decode(new_text.as_str()) {
+                        Ok(decoded) => {
+                            self.decoded_input = text_editor::Content::with_text(
+                                String::from_utf8(decoded).unwrap().as_str(),
+                            )
+                        }
+                        Err(_) => (),
+                    }
+                }
+            }
+        }
     }
 }
