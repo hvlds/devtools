@@ -5,7 +5,7 @@ use iced::Alignment::Center;
 use iced::{Element, Event, Subscription, Task, Theme};
 use launcher::Launcher;
 use modal::modal;
-use tools::{Base64Converter, JsonBeautifier, UuidGenerator};
+use tools::{Base64Converter, JsonBeautifier, RandomDataGenerator, UuidGenerator};
 
 use scale_factor::ScaleFactor;
 use utils::{Message, Tool};
@@ -37,14 +37,15 @@ enum Screen {
     UuidGenerator(UuidGenerator),
     JsonBeautifier(JsonBeautifier),
     Base64Converter(Base64Converter),
+    RandomDataGenerator(RandomDataGenerator),
 }
 
 impl Default for DevTools {
     fn default() -> Self {
         Self {
             launcher: Launcher::new(),
-            screen: Screen::UuidGenerator(UuidGenerator::new()),
-            current_tool: Tool::UuidGenerator,
+            screen: Screen::Base64Converter(Base64Converter::new()),
+            current_tool: Tool::Base64Converter,
             is_modal_open: false,
             scale_factor: ScaleFactor::default(),
             theme: Theme::Light,
@@ -105,6 +106,9 @@ impl DevTools {
                                 Tool::UuidGenerator => Screen::UuidGenerator(UuidGenerator::new()),
                                 Tool::Base64Converter => {
                                     Screen::Base64Converter(Base64Converter::new())
+                                }
+                                Tool::RandomDataGenerator => {
+                                    Screen::RandomDataGenerator(RandomDataGenerator::new())
                                 }
                             };
                             widget::text_input::focus("app-launcher-text-input")
@@ -183,6 +187,12 @@ impl DevTools {
             Screen::Base64Converter(base64_converter) => (
                 base64_converter.view().map(Message::Base64Converter),
                 base64_converter.title(),
+            ),
+            Screen::RandomDataGenerator(random_data_generator) => (
+                random_data_generator
+                    .view()
+                    .map(Message::RandomDataGenerator),
+                random_data_generator.title(),
             ),
         };
 

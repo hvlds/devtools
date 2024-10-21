@@ -4,7 +4,8 @@ use iced::{
     highlighter,
     widget::{
         button, column, container, horizontal_space, row, scrollable, slider, text,
-        text_editor::{self, Action}, Space,
+        text_editor::{self, Action},
+        Space,
     },
     Element,
     Length::Fill,
@@ -76,7 +77,12 @@ impl JsonBeautifier {
         .height(Fill);
 
         let json_rows = row![
-            column![row![text("Input"), horizontal_space()].height(50), editor, status].padding(10),
+            column![
+                row![text("Input"), horizontal_space()].height(50),
+                editor,
+                status
+            ]
+            .padding(10),
             column![
                 row![
                     text("Output"),
@@ -84,7 +90,8 @@ impl JsonBeautifier {
                     button("Copy to Clipboard"),
                     Space::with_width(10),
                     button("Save to file")
-                ].height(50),
+                ]
+                .height(50),
                 output
             ]
             .padding(10),
